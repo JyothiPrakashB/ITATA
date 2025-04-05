@@ -1,0 +1,95 @@
+lap14 (v1)
+Train Precision:  0.9326765188834154
+Train Recall:  0.9326765188834154
+Train F1:  0.9326765188834154
+Test Precision:  0.89125
+Test Recall:  0.89125
+Test F1:  0.89125
+
+lap14 (v2)
+Train Precision:  0.9234811165845649
+Train Recall:  0.9234811165845649
+Train F1:  0.9234811165845649
+Test Precision:  0.88125
+Test Recall:  0.88125
+Test F1:  0.88125
+
+lap14 (v3)
+Train Precision:  0.5113300492610837
+Train Recall:  0.5113300492610837
+Train F1:  0.5113300492610837
+Test Precision:  0.4725
+Test Recall:  0.4725
+Test F1:  0.4725
+
+res14 (v1)
+Train Precision:  0.8447878987175271
+Train Recall:  0.8447878987175271
+Train F1:  0.8447878987175271
+Test Precision:  0.835
+Test Recall:  0.835
+Test F1:  0.835
+
+res14 (v2)
+Train Precision:  0.8546530746464979
+Train Recall:  0.8546530746464979
+Train F1:  0.8546530746464979
+Test Precision:  0.84125
+Test Recall:  0.84125
+Test F1:  0.84125
+
+res14 (v3)
+Train Precision:  0.3354159815850049
+Train Recall:  0.3354159815850049
+Train F1:  0.3354159815850049
+Test Precision:  0.2425
+Test Recall:  0.2425
+Test F1:  0.2425
+
+res15 (v1)
+Train Precision:  0.9368821292775665
+Train Recall:  0.9368821292775665
+Train F1:  0.9368821292775665
+Test Precision:  0.9182481751824818
+Test Recall:  0.9182481751824818
+Test F1:  0.9182481751824818
+
+res15 (v2)
+Train Precision:  0.9612167300380228
+Train Recall:  0.9612167300380228
+Train F1:  0.9612167300380228
+Test Precision:  0.8978102189781022
+Test Recall:  0.8978102189781022
+Test F1:  0.8978102189781021
+
+res15 (v3)
+Train Precision:  0.47452471482889735
+Train Recall:  0.47452471482889735
+Train F1:  0.47452471482889735
+Test Precision:  0.34306569343065696
+Test Recall:  0.34306569343065696
+Test F1:  0.34306569343065696
+
+res16 (v1)
+Train Precision:  0.95
+Train Recall:  0.95
+Train F1:  0.9500000000000001
+Test Precision:  0.9245562130177515
+Test Recall:  0.9245562130177515
+Test F1:  0.9245562130177515
+
+res16 (v2)
+Train Precision:  0.9545
+Train Recall:  0.9545
+Train F1:  0.9545
+Test Precision:  0.9215976331360947
+Test Recall:  0.9215976331360947
+Test F1:  0.9215976331360947
+
+res16 (v3)
+Train Precision:  0.429
+Train Recall:  0.429
+Train F1:  0.429
+Test Precision:  0.4718934911242604
+Test Recall:  0.4718934911242604
+Test F1:  0.4718934911242604
