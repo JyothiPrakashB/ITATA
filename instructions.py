@@ -6,6 +6,7 @@ class InstructionsHandler:
         self.aooe = {}
         self.aope = {}
         self.aoste = {}
+        self.dimasr = {}
 
     def load_instruction_set1(self, ):
 
@@ -154,6 +155,55 @@ class InstructionsHandler:
         input: """
         self.aoste['delim_instruct'] = ''
         self.aoste['eos_instruct'] = ' \noutput:'
+
+        ################################# DimASR #################################
+
+        self.dimasr['bos_instruct1'] = """Definition: The output will be the valence and arousal scores for the given aspect in the input text. Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive). Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense). Output format: valence#arousal with values from 1.00 to 9.00 rounded to two decimal places.
+Positive example 1-
+input: I charge it at night and skip taking the cord with me because of the good battery life. The aspect is battery life.
+output: 7.12#6.88
+Positive example 2-
+input: The screen is absolutely amazing and crystal clear. The aspect is screen.
+output: 8.00#7.50
+Negative example 1-
+input: The keyboard is too slick and unresponsive. The aspect is keyboard.
+output: 3.25#6.50
+Negative example 2-
+input: This laptop overheats terribly and crashes constantly. The aspect is laptop.
+output: 2.00#7.80
+Neutral example 1-
+input: The laptop has a standard USB port for connectivity. The aspect is USB port.
+output: 5.00#5.00
+Neutral example 2-
+input: It comes with the usual pre-installed software. The aspect is software.
+output: 5.25#4.75
+Now complete the following example-
+input: """
+
+        self.dimasr['bos_instruct2'] = """Definition: The output will be the valence and arousal scores for the given aspect in the input text. Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive). Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense). Output format: valence#arousal with values from 1.00 to 9.00 rounded to two decimal places.
+Positive example 1-
+input: Great food, excellent service and wonderful ambiance. The aspect is food.
+output: 7.75#7.50
+Positive example 2-
+input: The sushi was incredibly fresh and heavenly. The aspect is sushi.
+output: 8.12#7.88
+Negative example 1-
+input: The food was bland and the service was horrible. The aspect is food.
+output: 2.50#7.25
+Negative example 2-
+input: Terrible delivery, arrived cold and late. The aspect is delivery.
+output: 2.88#6.62
+Neutral example 1-
+input: The restaurant is located on Main Street. The aspect is location.
+output: 5.00#5.00
+Neutral example 2-
+input: They offer both indoor and outdoor seating. The aspect is seating.
+output: 5.25#4.50
+Now complete the following example-
+input: """
+
+        self.dimasr['delim_instruct'] = ' The aspect is '
+        self.dimasr['eos_instruct'] = '.\noutput:'
 
 
     def load_instruction_set2(self, ):
@@ -447,7 +497,56 @@ class InstructionsHandler:
         input: """
         self.aoste['delim_instruct'] = ''
         self.aoste['eos_instruct'] = ' \noutput:'
-    
+
+        ################################# DimASR #################################
+
+        self.dimasr['bos_instruct1'] = """Definition: The output will be the valence and arousal scores for the given aspect in the input text. Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive). Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense). Output format: valence#arousal with values from 1.00 to 9.00 rounded to two decimal places.
+Positive example 1-
+input: I charge it at night and skip taking the cord with me because of the good battery life. The aspect is battery life.
+output: 7.12#6.88
+Positive example 2-
+input: The screen is absolutely amazing and crystal clear. The aspect is screen.
+output: 8.00#7.50
+Negative example 1-
+input: The keyboard is too slick and unresponsive. The aspect is keyboard.
+output: 3.25#6.50
+Negative example 2-
+input: This laptop overheats terribly and crashes constantly. The aspect is laptop.
+output: 2.00#7.80
+Neutral example 1-
+input: The laptop has a standard USB port for connectivity. The aspect is USB port.
+output: 5.00#5.00
+Neutral example 2-
+input: It comes with the usual pre-installed software. The aspect is software.
+output: 5.25#4.75
+Now complete the following example-
+input: """
+
+        self.dimasr['bos_instruct2'] = """Definition: The output will be the valence and arousal scores for the given aspect in the input text. Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive). Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense). Output format: valence#arousal with values from 1.00 to 9.00 rounded to two decimal places.
+Positive example 1-
+input: Great food, excellent service and wonderful ambiance. The aspect is food.
+output: 7.75#7.50
+Positive example 2-
+input: The sushi was incredibly fresh and heavenly. The aspect is sushi.
+output: 8.12#7.88
+Negative example 1-
+input: The food was bland and the service was horrible. The aspect is food.
+output: 2.50#7.25
+Negative example 2-
+input: Terrible delivery, arrived cold and late. The aspect is delivery.
+output: 2.88#6.62
+Neutral example 1-
+input: The restaurant is located on Main Street. The aspect is location.
+output: 5.00#5.00
+Neutral example 2-
+input: They offer both indoor and outdoor seating. The aspect is seating.
+output: 5.25#4.50
+Now complete the following example-
+input: """
+
+        self.dimasr['delim_instruct'] = ' The aspect is '
+        self.dimasr['eos_instruct'] = '.\noutput:'
+
     def load_instruction_set3(self, ):
 
         ################################# ATE #################################
@@ -757,3 +856,64 @@ class InstructionsHandler:
         input: """
         self.aspe['delim_instruct'] = ''
         self.aspe['eos_instruct'] = ' \noutput:'
+
+        ################################# DimASR #################################
+
+        self.dimasr['bos_instruct1'] = """Definition: The output will be the valence and arousal scores for the given aspect in the input text. Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive). Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense). Output format: valence#arousal with values from 1.00 to 9.00 rounded to two decimal places.
+Positive example 1-
+input: I charge it at night and skip taking the cord with me because of the good battery life. The aspect is battery life.
+output: 7.12#6.88
+Positive example 2-
+input: The screen is absolutely amazing and crystal clear. The aspect is screen.
+output: 8.00#7.50
+Positive example 3-
+input: This laptop has the best keyboard I've ever used. The aspect is keyboard.
+output: 8.25#7.75
+Negative example 1-
+input: The keyboard is too slick and unresponsive. The aspect is keyboard.
+output: 3.25#6.50
+Negative example 2-
+input: This laptop overheats terribly and crashes constantly. The aspect is laptop.
+output: 2.00#7.80
+Negative example 3-
+input: The battery barely lasts two hours under normal use. The aspect is battery.
+output: 2.75#6.25
+Neutral example 1-
+input: The laptop has a standard USB port for connectivity. The aspect is USB port.
+output: 5.00#5.00
+Neutral example 2-
+input: It comes with the usual pre-installed software. The aspect is software.
+output: 5.25#4.75
+Now complete the following example-
+input: """
+
+        self.dimasr['bos_instruct2'] = """Definition: The output will be the valence and arousal scores for the given aspect in the input text. Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive). Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense). Output format: valence#arousal with values from 1.00 to 9.00 rounded to two decimal places.
+Positive example 1-
+input: Great food, excellent service and wonderful ambiance. The aspect is food.
+output: 7.75#7.50
+Positive example 2-
+input: The sushi was incredibly fresh and heavenly. The aspect is sushi.
+output: 8.12#7.88
+Positive example 3-
+input: The staff was extremely friendly and attentive throughout our meal. The aspect is staff.
+output: 8.00#7.25
+Negative example 1-
+input: The food was bland and the service was horrible. The aspect is food.
+output: 2.50#7.25
+Negative example 2-
+input: Terrible delivery, arrived cold and late. The aspect is delivery.
+output: 2.88#6.62
+Negative example 3-
+input: The wait time was absolutely unacceptable, over an hour for appetizers. The aspect is wait time.
+output: 2.25#7.50
+Neutral example 1-
+input: The restaurant is located on Main Street. The aspect is location.
+output: 5.00#5.00
+Neutral example 2-
+input: They offer both indoor and outdoor seating. The aspect is seating.
+output: 5.25#4.50
+Now complete the following example-
+input: """
+
+        self.dimasr['delim_instruct'] = ' The aspect is '
+        self.dimasr['eos_instruct'] = '.\noutput:'

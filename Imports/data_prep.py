@@ -1,6 +1,8 @@
 from datasets import Dataset
 from datasets.dataset_dict import DatasetDict
 import ast
+import json
+import pandas as pd
 
 
 class DatasetLoader:
@@ -226,8 +228,111 @@ class DatasetLoader:
         
         # Format input text with instructions
         df['text'] = df[text_col].apply(lambda x: bos_instruction + x + eos_instruction)
-        
+
         return df
+
+    @staticmethod
+    def load_jsonl_data(file_path):
+        """
+        Load JSONL file and return as pandas DataFrame.
+
+        Args:
+            file_path: Path to JSONL file
+
+        Returns:
+            pd.DataFrame with columns from JSONL records
+        """
+        records = []
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    records.append(json.loads(line))
+        return pd.DataFrame(records)
+
+    def create_data_in_dimasr_format(self, df, text_col='Text', quadruplet_col='Quadruplet',
+                                      aspect_col='Aspect', bos_instruction='',
+                                      delim_instruction='', eos_instruction='',
+                                      is_train=True):
+        """
+        Prepare data for DimASR task (Dimensional Aspect Sentiment Regression).
+
+        For training: Expands Quadruplet/Triplet entries to one row per aspect with VA labels.
+        For inference: Expands Aspect list to one row per aspect (no labels).
+
+        Args:
+            df: Input DataFrame (from JSONL)
+            text_col: Column name for review text (default: 'Text')
+            quadruplet_col: Column name for Quadruplet/Triplet data (default: 'Quadruplet')
+            aspect_col: Column name for aspect list (default: 'Aspect')
+            bos_instruction: Beginning of sequence instruction
+            delim_instruction: Delimiter instruction (e.g., " The aspect is ")
+            eos_instruction: End of sequence instruction
+            is_train: Whether this is training data (has VA labels)
+
+        Returns:
+            DataFrame with 'text', 'labels', 'ID', 'aspect', 'original_text' columns
+        """
+        if df is None:
+            return None
+
+        expanded_rows = []
+
+        for idx, row in df.iterrows():
+            text = row[text_col]
+            record_id = row['ID']
+
+            # Check for training data formats (Quadruplet or Triplet)
+            if is_train and (quadruplet_col in df.columns or 'Triplet' in df.columns):
+                # Determine which column to use
+                data_col = quadruplet_col if quadruplet_col in df.columns else 'Triplet'
+                data_items = row.get(data_col, [])
+
+                if isinstance(data_items, str):
+                    data_items = json.loads(data_items)
+
+                if data_items is None or len(data_items) == 0:
+                    continue
+
+                for item in data_items:
+                    aspect = item.get('Aspect', 'NULL')
+                    va = item.get('VA', '5.00#5.00')
+
+                    # Format input text with instructions
+                    formatted_text = bos_instruction + text + delim_instruction + str(aspect) + eos_instruction
+
+                    expanded_rows.append({
+                        'ID': record_id,
+                        'text': formatted_text,
+                        'labels': va,  # e.g., "7.12#6.88"
+                        'aspect': aspect,
+                        'original_text': text
+                    })
+            else:
+                # Inference data: extract from Aspect list
+                aspects = row.get(aspect_col, [])
+
+                if isinstance(aspects, str):
+                    try:
+                        aspects = json.loads(aspects)
+                    except json.JSONDecodeError:
+                        aspects = [aspects]
+
+                if aspects is None:
+                    aspects = []
+
+                for aspect in aspects:
+                    formatted_text = bos_instruction + text + delim_instruction + str(aspect) + eos_instruction
+
+                    expanded_rows.append({
+                        'ID': record_id,
+                        'text': formatted_text,
+                        'labels': '',  # No labels for inference
+                        'aspect': aspect,
+                        'original_text': text
+                    })
+
+        return pd.DataFrame(expanded_rows)
 
     def set_data_for_training_semeval(self, tokenize_function):
         """

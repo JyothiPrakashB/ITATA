@@ -1,5 +1,7 @@
 import numpy as np
+import math
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from scipy.stats import pearsonr
 import torch
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
@@ -131,6 +133,110 @@ class T5Generator:
         p = tp/total_pred
         r = tp/total_gt
         return p, r, 2*p*r/(p+r), None
+
+    def get_metrics_regression(self, y_true, y_pred):
+        """
+        Calculate regression metrics for DimASR task using the official RMSE_VA formula.
+
+        RMSE_VA = sqrt( sum((V_pred - V_gold)^2 + (A_pred - A_gold)^2) / N )
+
+        Args:
+            y_true: List of ground truth VA strings (e.g., ["7.12#6.88", ...])
+            y_pred: List of predicted VA strings
+
+        Returns:
+            dict with RMSE_VA (official metric), PCC_V, PCC_A, and other metrics
+        """
+        true_valence, true_arousal = [], []
+        pred_valence, pred_arousal = [], []
+
+        for gt, pred in zip(y_true, y_pred):
+            # Parse ground truth
+            try:
+                gt_parts = gt.strip().split('#')
+                gt_v = float(gt_parts[0]) if len(gt_parts) > 0 else 5.0
+                gt_a = float(gt_parts[1]) if len(gt_parts) > 1 else 5.0
+            except (ValueError, IndexError):
+                gt_v, gt_a = 5.0, 5.0  # Default neutral
+
+            # Parse prediction with flexible handling
+            try:
+                # Handle various formats the model might output
+                pred_clean = pred.strip().replace(',', '.')
+                pred_parts = pred_clean.split('#')
+                pred_v = float(pred_parts[0]) if len(pred_parts) > 0 else 5.0
+                pred_a = float(pred_parts[1]) if len(pred_parts) > 1 else 5.0
+            except (ValueError, IndexError):
+                pred_v, pred_a = 5.0, 5.0  # Default neutral on parse failure
+
+            # Clamp to valid range [1.0, 9.0]
+            pred_v = max(1.0, min(9.0, pred_v))
+            pred_a = max(1.0, min(9.0, pred_a))
+
+            true_valence.append(gt_v)
+            true_arousal.append(gt_a)
+            pred_valence.append(pred_v)
+            pred_arousal.append(pred_a)
+
+        # Convert to numpy arrays
+        true_valence = np.array(true_valence)
+        true_arousal = np.array(true_arousal)
+        pred_valence = np.array(pred_valence)
+        pred_arousal = np.array(pred_arousal)
+
+        n = len(true_valence)
+
+        # Official RMSE_VA: sqrt( sum((V_p - V_g)^2 + (A_p - A_g)^2) / N )
+        total_sq_error = np.sum((pred_valence - true_valence)**2 + (pred_arousal - true_arousal)**2)
+        rmse_va = math.sqrt(total_sq_error / n)
+
+        # Pearson Correlation Coefficient
+        try:
+            pcc_v, _ = pearsonr(true_valence, pred_valence)
+        except:
+            pcc_v = 0.0
+
+        try:
+            pcc_a, _ = pearsonr(true_arousal, pred_arousal)
+        except:
+            pcc_a = 0.0
+
+        # Individual RMSE for valence and arousal
+        rmse_v = math.sqrt(np.mean((true_valence - pred_valence)**2))
+        rmse_a = math.sqrt(np.mean((true_arousal - pred_arousal)**2))
+
+        return {
+            'RMSE_VA': rmse_va,      # Official evaluation metric
+            'PCC_V': pcc_v,           # Pearson correlation for valence
+            'PCC_A': pcc_a,           # Pearson correlation for arousal
+            'PCC_avg': (pcc_v + pcc_a) / 2,
+            'RMSE_V': rmse_v,
+            'RMSE_A': rmse_a
+        }
+
+    def parse_va_prediction(self, prediction):
+        """
+        Parse a VA prediction string and return formatted values.
+
+        Args:
+            prediction: Raw model output string
+
+        Returns:
+            Formatted VA string "X.XX#X.XX" clamped to [1.00, 9.00]
+        """
+        try:
+            pred_clean = prediction.strip().replace(',', '.')
+            parts = pred_clean.split('#')
+            valence = float(parts[0]) if len(parts) > 0 else 5.0
+            arousal = float(parts[1]) if len(parts) > 1 else 5.0
+        except (ValueError, IndexError):
+            valence, arousal = 5.0, 5.0
+
+        # Clamp to valid range [1.00, 9.00]
+        valence = max(1.0, min(9.0, valence))
+        arousal = max(1.0, min(9.0, arousal))
+
+        return f"{valence:.2f}#{arousal:.2f}"
 
 
 class T5Classifier:
