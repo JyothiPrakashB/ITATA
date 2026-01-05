@@ -7,6 +7,7 @@ class InstructionsHandler:
         self.aope = {}
         self.aoste = {}
         self.dimasr = {}
+        self.dimasr_cot = {}  # Chain of Thought instructions for DimASR
 
     def load_instruction_set1(self, ):
 
@@ -917,3 +918,99 @@ input: """
 
         self.dimasr['delim_instruct'] = ' The aspect is '
         self.dimasr['eos_instruct'] = '.\noutput:'
+
+    def load_instruction_set_cot1(self):
+        """
+        Load Chain of Thought (CoT) instruction templates for DimASR.
+
+        CoT format includes reasoning before the final valence#arousal output:
+        - Model generates: "reasoning: [analysis] output: X.XX#X.XX"
+        - Helps model learn sentiment intensity mapping through explicit reasoning
+        """
+
+        ################################# DimASR CoT - Laptop Domain #################################
+
+        self.dimasr_cot['bos_instruct1'] = """Definition: Analyze the sentiment towards the given aspect in the input text. First provide reasoning about the sentiment polarity and intensity, then output the valence and arousal scores.
+
+Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive).
+Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense).
+
+Output format: First explain your reasoning, then provide "output: valence#arousal" with values from 1.00 to 9.00 rounded to two decimal places.
+
+Positive example 1-
+input: I charge it at night and skip taking the cord with me because of the good battery life. The aspect is battery life.
+reasoning: The word "good" expresses positive sentiment about the battery life. The user is satisfied enough to not carry the charger, indicating moderate-high positivity. The tone is matter-of-fact without extreme excitement.
+Valence: moderately positive (~7.1). Arousal: moderate engagement (~6.9).
+output: 7.12#6.88
+
+Positive example 2-
+input: The screen is absolutely amazing and crystal clear. The aspect is screen.
+reasoning: Words "absolutely amazing" and "crystal clear" convey strong positive sentiment with enthusiasm. The superlative "absolutely" shows high emotional engagement.
+Valence: strongly positive (~8.0). Arousal: high excitement (~7.5).
+output: 8.00#7.50
+
+Negative example 1-
+input: The keyboard is too slick and unresponsive. The aspect is keyboard.
+reasoning: Both "too slick" and "unresponsive" are complaints expressing dissatisfaction. The user identifies specific problems with frustration but without extreme anger.
+Valence: negative (~3.25). Arousal: moderate frustration (~6.5).
+output: 3.25#6.50
+
+Negative example 2-
+input: This laptop overheats terribly and crashes constantly. The aspect is laptop.
+reasoning: "Terribly" and "constantly" express strong negative emotions. Multiple severe issues (overheating and crashing) indicate high frustration and intensity.
+Valence: strongly negative (~2.0). Arousal: high frustration (~7.8).
+output: 2.00#7.80
+
+Neutral example 1-
+input: The laptop has a standard USB port for connectivity. The aspect is USB port.
+reasoning: This is a factual statement about a standard feature. No opinion words or emotional language. Purely descriptive with no positive or negative sentiment.
+Valence: neutral (~5.0). Arousal: low/neutral (~5.0).
+output: 5.00#5.00
+
+Now complete the following example-
+input: """
+
+        ################################# DimASR CoT - Restaurant Domain #################################
+
+        self.dimasr_cot['bos_instruct2'] = """Definition: Analyze the sentiment towards the given aspect in the input text. First provide reasoning about the sentiment polarity and intensity, then output the valence and arousal scores.
+
+Valence measures emotional positivity (1.00=very negative, 5.00=neutral, 9.00=very positive).
+Arousal measures emotional intensity (1.00=calm, 9.00=excited/intense).
+
+Output format: First explain your reasoning, then provide "output: valence#arousal" with values from 1.00 to 9.00 rounded to two decimal places.
+
+Positive example 1-
+input: Great food, excellent service and wonderful ambiance. The aspect is food.
+reasoning: The word "Great" is a strong positive descriptor for the food. Multiple positive adjectives in the sentence show overall enthusiasm. Direct, emphatic praise.
+Valence: strongly positive (~7.75). Arousal: high enthusiasm (~7.5).
+output: 7.75#7.50
+
+Positive example 2-
+input: The sushi was incredibly fresh and heavenly. The aspect is sushi.
+reasoning: "Incredibly fresh" and "heavenly" express extreme positive sentiment. "Heavenly" is a superlative suggesting exceptional quality with high emotional engagement.
+Valence: very strongly positive (~8.1). Arousal: high excitement (~7.9).
+output: 8.12#7.88
+
+Negative example 1-
+input: The food was bland and the service was horrible. The aspect is food.
+reasoning: "Bland" indicates lack of flavor/quality - negative but not extreme. Combined with "horrible service" context shows overall negative dining experience.
+Valence: negative (~2.5). Arousal: high frustration from overall experience (~7.25).
+output: 2.50#7.25
+
+Negative example 2-
+input: Terrible delivery, arrived cold and late. The aspect is delivery.
+reasoning: "Terrible" is strongly negative. Specific complaints "cold and late" compound the negative sentiment. Shows clear dissatisfaction with elevated emotional response.
+Valence: negative (~2.9). Arousal: moderate-high frustration (~6.6).
+output: 2.88#6.62
+
+Neutral example 1-
+input: The restaurant is located on Main Street. The aspect is location.
+reasoning: Purely factual statement about geographic location. No opinion words, no emotional language. Simple descriptive information.
+Valence: neutral (~5.0). Arousal: neutral/low (~5.0).
+output: 5.00#5.00
+
+Now complete the following example-
+input: """
+
+        self.dimasr_cot['delim_instruct'] = ' The aspect is '
+        self.dimasr_cot['eos_instruct'] = '.\nreasoning:'

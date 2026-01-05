@@ -334,6 +334,161 @@ class DatasetLoader:
 
         return pd.DataFrame(expanded_rows)
 
+    def _generate_reasoning_template(self, va_string, aspect):
+        """
+        Generate synthetic reasoning text based on VA values for CoT training.
+
+        Args:
+            va_string: VA string in format "X.XX#X.XX"
+            aspect: The aspect term
+
+        Returns:
+            Reasoning template string
+        """
+        try:
+            parts = va_string.strip().split('#')
+            valence = float(parts[0]) if len(parts) > 0 else 5.0
+            arousal = float(parts[1]) if len(parts) > 1 else 5.0
+        except (ValueError, IndexError):
+            valence, arousal = 5.0, 5.0
+
+        # Valence reasoning
+        if valence >= 7.5:
+            v_sentiment = "strong positive sentiment"
+            v_desc = "strongly positive"
+        elif valence >= 6.5:
+            v_sentiment = "positive sentiment"
+            v_desc = "positive"
+        elif valence >= 5.5:
+            v_sentiment = "mildly positive sentiment"
+            v_desc = "slightly positive"
+        elif valence >= 4.5:
+            v_sentiment = "neutral sentiment"
+            v_desc = "neutral"
+        elif valence >= 3.5:
+            v_sentiment = "mildly negative sentiment"
+            v_desc = "slightly negative"
+        elif valence >= 2.5:
+            v_sentiment = "negative sentiment"
+            v_desc = "negative"
+        else:
+            v_sentiment = "strong negative sentiment"
+            v_desc = "strongly negative"
+
+        # Arousal reasoning
+        if arousal >= 7.5:
+            a_intensity = "high emotional intensity"
+            a_desc = "high"
+        elif arousal >= 6.5:
+            a_intensity = "elevated emotional engagement"
+            a_desc = "moderate-high"
+        elif arousal >= 5.5:
+            a_intensity = "moderate emotional engagement"
+            a_desc = "moderate"
+        elif arousal >= 4.5:
+            a_intensity = "neutral emotional state"
+            a_desc = "neutral"
+        elif arousal >= 3.5:
+            a_intensity = "calm emotional state"
+            a_desc = "low-moderate"
+        else:
+            a_intensity = "very calm, subdued emotional state"
+            a_desc = "low"
+
+        reasoning = f"The text expresses {v_sentiment} about the {aspect}. The emotional tone shows {a_intensity}.\n"
+        reasoning += f"Valence: {v_desc} (~{valence:.1f}). Arousal: {a_desc} (~{arousal:.1f}).\n"
+        reasoning += f"output: {va_string}"
+
+        return reasoning
+
+    def create_data_in_dimasr_cot_format(self, df, text_col='Text', quadruplet_col='Quadruplet',
+                                          aspect_col='Aspect', bos_instruction='',
+                                          delim_instruction='', eos_instruction='',
+                                          is_train=True):
+        """
+        Prepare data for DimASR task with Chain of Thought format.
+
+        For training: Generates input with CoT reasoning template as labels.
+        For inference: Same as regular format but with reasoning prompt.
+
+        Args:
+            df: Input DataFrame (from JSONL)
+            text_col: Column name for review text (default: 'Text')
+            quadruplet_col: Column name for Quadruplet data (default: 'Quadruplet')
+            aspect_col: Column name for aspect list (default: 'Aspect')
+            bos_instruction: Beginning of sequence instruction (CoT version)
+            delim_instruction: Delimiter instruction (e.g., " The aspect is ")
+            eos_instruction: End of sequence instruction (e.g., ".\\nreasoning:")
+            is_train: Whether this is training data (has VA labels)
+
+        Returns:
+            DataFrame with 'text', 'labels', 'ID', 'aspect', 'original_text' columns
+        """
+        if df is None:
+            return None
+
+        expanded_rows = []
+
+        for idx, row in df.iterrows():
+            text = row[text_col]
+            record_id = row['ID']
+
+            # Check for training data formats (Quadruplet or Triplet)
+            if is_train and (quadruplet_col in df.columns or 'Triplet' in df.columns):
+                data_col = quadruplet_col if quadruplet_col in df.columns else 'Triplet'
+                data_items = row.get(data_col, [])
+
+                if isinstance(data_items, str):
+                    data_items = json.loads(data_items)
+
+                if data_items is None or len(data_items) == 0:
+                    continue
+
+                for item in data_items:
+                    aspect = item.get('Aspect', 'NULL')
+                    va = item.get('VA', '5.00#5.00')
+
+                    # Format input text with CoT instructions
+                    formatted_text = bos_instruction + text + delim_instruction + str(aspect) + eos_instruction
+
+                    # Generate CoT reasoning as label
+                    cot_label = self._generate_reasoning_template(va, aspect)
+
+                    expanded_rows.append({
+                        'ID': record_id,
+                        'text': formatted_text,
+                        'labels': cot_label,  # Full CoT format with reasoning
+                        'va': va,  # Store raw VA for metrics
+                        'aspect': aspect,
+                        'original_text': text
+                    })
+            else:
+                # Inference data: extract from Aspect list
+                aspects = row.get(aspect_col, [])
+
+                if isinstance(aspects, str):
+                    try:
+                        aspects = json.loads(aspects)
+                    except json.JSONDecodeError:
+                        aspects = [aspects]
+
+                if aspects is None:
+                    aspects = []
+
+                for aspect in aspects:
+                    formatted_text = bos_instruction + text + delim_instruction + str(aspect) + eos_instruction
+
+                    expanded_rows.append({
+                        'ID': record_id,
+                        'text': formatted_text,
+                        'labels': '',  # No labels for inference
+                        'va': '',
+                        'aspect': aspect,
+                        'original_text': text
+                    })
+
+        return pd.DataFrame(expanded_rows)
+
     def set_data_for_training_semeval(self, tokenize_function):
         """
         Create the training and test dataset as huggingface datasets format.

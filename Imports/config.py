@@ -36,6 +36,12 @@ class Config(object):
         self.delim_instruction = None
         self.eos_instruction = None
         self.test_input = None
+        # CoT + RL parameters
+        self.use_cot = False
+        self.use_reward_weighted = False
+        self.rl_weight = 0.1
+        self.reward_alpha = 0.5
+        self.max_output_length = 64  # 256 for CoT
         self.parser = self.setup_parser()
         self.args = vars(self.parser.parse_args()) 
         self.__dict__.update(self.args)
@@ -69,6 +75,12 @@ class Config(object):
         parser.add_argument('-save_strategy', help='no/epoch/steps', default='no', type=str)
         parser.add_argument('-eval_accumulation_steps', help='Eval gradient accumulation steps', default=1, type=int)
         parser.add_argument('-predict_with_generate', help='Predict with generate', default=True, type=bool)
-        parser.add_argument('-max_token_length', help='Sets maximum token output length', default=128, type=bool)
+        parser.add_argument('-max_token_length', help='Sets maximum token output length', default=128, type=int)
         parser.add_argument('-test_input', help='The input review to test', type=str)
+        # CoT + RL arguments
+        parser.add_argument('-use_cot', help='Use Chain of Thought prompting', default=False, type=bool)
+        parser.add_argument('-use_reward_weighted', help='Use Reward-Weighted training', default=False, type=bool)
+        parser.add_argument('-rl_weight', help='Weight for RL loss component', default=0.1, type=float)
+        parser.add_argument('-reward_alpha', help='Alpha for reward computation exp(-alpha*rmse)', default=0.5, type=float)
+        parser.add_argument('-max_output_length', help='Maximum output token length (256 for CoT)', default=64, type=int)
         return parser
