@@ -17,24 +17,29 @@ class DatasetLoader:
         self.val_df_ood = val_df_ood
 
     def set_data_for_training_semeval_with_validation(self, tokenize_function):
-        """Create datasets with validation split for training and evaluation"""
-    
+
         # Create datasets dictionary
         id_ds = DatasetDict()
+
+        # TRAIN
         if self.train_df_id is not None:
-            id_ds['train'] = Dataset.from_pandas(self.train_df_id)
-        if hasattr(self, 'val_df_id') and self.val_df_id is not None:
-            id_ds['validation'] = Dataset.from_pandas(self.val_df_id)
+            id_ds["train"] = Dataset.from_pandas(self.train_df_id)
+
+        # VALIDATION (DEV)
+        if hasattr(self, "val_df_id") and self.val_df_id is not None:
+            id_ds["validation"] = Dataset.from_pandas(self.val_df_id)
+
+        # TEST
         if self.test_df_id is not None:
-            id_ds['test'] = Dataset.from_pandas(self.test_df_id)
-    
-        # Tokenize all datasets
+            id_ds["test"] = Dataset.from_pandas(self.test_df_id)
+
+        # TOKENIZE EVERYTHING
         id_tokenized_ds = id_ds.map(tokenize_function, batched=True)
-    
-        # Include empty OOD datasets for compatibility with existing code
+
+        # keep compatibility with old code
         ood_ds = DatasetDict()
         ood_tokenized_ds = None
-    
+
         return id_ds, id_tokenized_ds, ood_ds, ood_tokenized_ds
 
     def reconstruct_strings(self, df, col):
